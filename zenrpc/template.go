@@ -67,6 +67,7 @@ package {{.PackageName}}
 import (
 	"encoding/json"
 	"context"
+	"net/http"
 
 	"github.com/vmkteam/zenrpc/v2"
 	"github.com/vmkteam/zenrpc/v2/smd"
@@ -150,7 +151,7 @@ var RPC = struct {
 	}
 
 	// Invoke is as generated code from zenrpc cmd
-	func (s {{.Name}}) Invoke(ctx context.Context, method string, params json.RawMessage) zenrpc.Response {
+	func (s {{.Name}}) Invoke(ctx context.Context, w http.ResponseWriter, method string, params json.RawMessage) zenrpc.Response {
 		resp := zenrpc.Response{}
 		{{ if .HasErrorVariable }}var err error{{ end }}
 

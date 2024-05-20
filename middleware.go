@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -14,13 +15,13 @@ import (
 // It's just an example for middleware, will be refactored later.
 func Logger(l *log.Logger) MiddlewareFunc {
 	return func(h InvokeFunc) InvokeFunc {
-		return func(ctx context.Context, method string, params json.RawMessage) Response {
+		return func(ctx context.Context, w http.ResponseWriter, method string, params json.RawMessage) Response {
 			start, ip := time.Now(), "<nil>"
 			if req, ok := RequestFromContext(ctx); ok && req != nil {
 				ip = req.RemoteAddr
 			}
 
-			r := h(ctx, method, params)
+			r := h(ctx, w, method, params)
 			l.Printf("ip=%s method=%s.%s duration=%v params=%s err=%s", ip, NamespaceFromContext(ctx), method, time.Since(start), params, r.Error)
 
 			return r
@@ -52,9 +53,9 @@ func Metrics(appName string) MiddlewareFunc {
 	prometheus.MustRegister(rpcErrors, rpcDurations)
 
 	return func(h InvokeFunc) InvokeFunc {
-		return func(ctx context.Context, method string, params json.RawMessage) Response {
+		return func(ctx context.Context, w http.ResponseWriter, method string, params json.RawMessage) Response {
 			start, code := time.Now(), ""
-			r := h(ctx, method, params)
+			r := h(ctx, w, method, params)
 
 			// log metrics
 			if n := NamespaceFromContext(ctx); n != "" {
